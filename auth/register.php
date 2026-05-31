@@ -58,13 +58,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Register - <?= e(APP_NAME) ?></title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f7f7fb; color: #111827; }
-        .box { max-width: 420px; margin: 60px auto; background: #fff; padding: 28px; border-radius: 18px; box-shadow: 0 20px 48px rgba(15, 23, 42, .08); }
-        label { display: block; margin: 14px 0 6px; }
-        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; }
-        button { margin-top: 18px; width: 100%; padding: 12px; border: 0; border-radius: 10px; background: #7c3aed; color: #fff; font-weight: 700; }
-        a { color: #7c3aed; }
-        .error { background: #fef3f2; color: #b42318; padding: 12px; border-radius: 10px; margin-bottom: 12px; }
+        body {
+            margin: 0; font-family: "Trebuchet MS", "Segoe UI", sans-serif; color: #1f1308;
+            background:
+                radial-gradient(circle at top left, rgba(249, 115, 22, 0.12), transparent 26%),
+                linear-gradient(180deg, #fffaf5 0%, #fff4e9 100%);
+        }
+        .box {
+            max-width: 420px; margin: 56px auto; background: rgba(255,255,255,.9); padding: 28px;
+            border-radius: 24px; box-shadow: 0 24px 70px rgba(249, 115, 22, 0.12); border: 1px solid #f3dcc7;
+        }
+        label { display: block; margin: 14px 0 6px; color: #7a5d45; font-weight: 700; }
+        input {
+            width: 100%; padding: 12px 13px; border: 1px solid #e9cfb6; border-radius: 12px;
+            box-sizing: border-box; background: #fff;
+        }
+        button {
+            margin-top: 18px; width: 100%; padding: 12px; border: 0; border-radius: 999px;
+            background: #f97316; color: #fff; font-weight: 800;
+        }
+        a { color: #ea580c; }
+        .error { background: #fff1f2; color: #be123c; padding: 12px; border-radius: 12px; margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -81,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input id="password" name="password" type="password" required>
         <button type="submit">Create account</button>
     </form>
-    <p>Already have an account? <a href="<?= e(url('auth/login.php')) ?>">Login</a></p>
+    <p><a href="<?= e(url('auth/login.php')) ?>">Login</a></p>
 </div>
 </body>
 </html>

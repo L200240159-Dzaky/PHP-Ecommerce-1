@@ -76,104 +76,169 @@ $error = flash('error');
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Products - <?= e(APP_NAME) ?></title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f7f7fb; color: #111827; }
-        .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
-        .panel { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 20px 48px rgba(15, 23, 42, .08); margin-bottom: 20px; }
-        label { display: block; margin: 12px 0 6px; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; }
-        textarea { min-height: 100px; }
-        button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 10px; background: #7c3aed; color: #fff; font-weight: 700; cursor: pointer; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: top; }
-        .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .danger { background: #dc2626; }
-        .alert.success { background: #ecfdf3; color: #027a48; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
-        .alert.error { background: #fef3f2; color: #b42318; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
-        a { color: #7c3aed; }
+        :root {
+            color-scheme: light;
+            --bg: #fff7ef;
+            --panel: rgba(255,255,255,.88);
+            --text: #1f1308;
+            --muted: #7a5d45;
+            --accent: #f97316;
+            --accent-dark: #ea580c;
+            --accent-soft: #fff1e7;
+            --border: #f3dcc7;
+            --shadow: 0 24px 70px rgba(249, 115, 22, 0.12);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; font-family: "Trebuchet MS", "Segoe UI", sans-serif; color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(249, 115, 22, 0.14), transparent 28%),
+                linear-gradient(180deg, #fffaf5 0%, #fff4e9 100%);
+        }
+        .wrap { max-width: 1160px; margin: 0 auto; padding: 20px; }
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+            margin-bottom: 18px; padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,.72);
+            border: 1px solid var(--border); backdrop-filter: blur(10px);
+        }
+        .topbar a { color: var(--accent-dark); text-decoration: none; font-weight: 800; }
+        .title { margin: 0; font-size: clamp(1.7rem, 3vw, 2.4rem); letter-spacing: -0.04em; }
+        .panel {
+            background: var(--panel); border-radius: 22px; padding: 22px; box-shadow: var(--shadow);
+            margin-bottom: 18px; border: 1px solid var(--border);
+        }
+        h2 { margin-top: 0; }
+        label { display: block; margin: 12px 0 6px; color: var(--muted); font-weight: 700; }
+        input, textarea, select {
+            width: 100%; padding: 12px 13px; border: 1px solid #e9cfb6; border-radius: 12px;
+            box-sizing: border-box; background: #fff; color: var(--text);
+        }
+        textarea { min-height: 96px; resize: vertical; }
+        button {
+            margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 999px; background: var(--accent);
+            color: #fff; font-weight: 800; cursor: pointer;
+        }
+        button:hover { background: var(--accent-dark); }
+        .stack { display: grid; gap: 18px; }
+        .table-wrap { overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; min-width: 920px; }
+        .table th, .table td {
+            padding: 14px 10px; border-bottom: 1px solid #f1ddca; text-align: left; vertical-align: top;
+        }
+        .table th { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+        .row-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: start; }
+        .row-actions input, .row-actions select, .row-actions textarea { min-width: 140px; }
+        .wide-form .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .wide-form .full { grid-column: 1 / -1; }
+        .danger { background: #ea580c; }
+        .danger:hover { background: #c2410c; }
+        .alert.success, .alert.error { padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid transparent; }
+        .alert.success { background: #fff5eb; color: #9a3412; border-color: #fed7aa; }
+        .alert.error { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+        .muted { color: var(--muted); }
+        a { color: var(--accent-dark); }
     </style>
 </head>
 <body>
 <div class="wrap">
-    <p><a href="<?= e(url('index.php')) ?>">Back to home</a></p>
-    <h1>Admin product management</h1>
+    <div class="topbar">
+        <a href="<?= e(url('index.php')) ?>">Back to home</a>
+        <span class="muted">Admin products</span>
+    </div>
+    <h1 class="title">Product control</h1>
 
     <?php if ($success !== null): ?><div class="alert success"><?= e($success) ?></div><?php endif; ?>
     <?php if ($error !== null): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
 
-    <div class="grid">
-        <section class="panel">
-            <h2>Create product</h2>
+    <div class="stack">
+        <section class="panel wide-form">
+            <h2>Add product</h2>
             <form method="post">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create">
-                <label for="create_name">Name</label>
-                <input id="create_name" name="name" type="text" required>
-                <label for="create_description">Description</label>
-                <textarea id="create_description" name="description"></textarea>
-                <label for="create_price">Price</label>
-                <input id="create_price" name="price" type="number" step="0.01" min="0.01" required>
-                <label for="create_category">Category</label>
-                <select id="create_category" name="category_id">
-                    <option value="">Uncategorized</option>
-                    <?php foreach ($categories as $category): ?>
-                        <option value="<?= e((string) $category['id']) ?>"><?= e($category['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="form-grid">
+                    <div>
+                        <label for="create_name">Name</label>
+                        <input id="create_name" name="name" type="text" required>
+                    </div>
+                    <div>
+                        <label for="create_price">Price</label>
+                        <input id="create_price" name="price" type="number" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="full">
+                        <label for="create_description">Description</label>
+                        <textarea id="create_description" name="description"></textarea>
+                    </div>
+                    <div class="full">
+                        <label for="create_category">Category</label>
+                        <select id="create_category" name="category_id">
+                            <option value="">Uncategorized</option>
+                            <?php foreach ($categories as $category): ?>
+                                <option value="<?= e((string) $category['id']) ?>"><?= e($category['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
                 <button type="submit">Save product</button>
             </form>
         </section>
 
         <section class="panel">
-            <h2>Existing products</h2>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($products as $product): ?>
-                    <tr>
-                        <td>
-                            <strong><?= e($product['name']) ?></strong><br>
-                            <small><?= e($product['description'] ?? '') ?></small>
-                        </td>
-                        <td><?= e($product['category_name'] ?? 'Uncategorized') ?></td>
-                        <td>$<?= e(number_format((float) $product['price'], 2)) ?></td>
-                        <td>
-                            <form method="post" class="row-actions">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="action" value="update">
-                                <input type="hidden" name="id" value="<?= e((string) $product['id']) ?>">
-                                <input type="text" name="name" value="<?= e($product['name']) ?>" required>
-                                <input type="number" name="price" step="0.01" min="0.01" value="<?= e((string) $product['price']) ?>" required>
-                                <select name="category_id">
-                                    <option value="">Uncategorized</option>
-                                    <?php foreach ($categories as $category): ?>
-                                        <option value="<?= e((string) $category['id']) ?>" <?= (int) ($product['category_id'] ?? 0) === (int) $category['id'] ? 'selected' : '' ?>><?= e($category['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <textarea name="description" placeholder="description"><?= e($product['description'] ?? '') ?></textarea>
-                                <button type="submit">Update</button>
-                            </form>
-                            <form method="post" onsubmit="return confirm('Delete this product?');">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="id" value="<?= e((string) $product['id']) ?>">
-                                <button type="submit" class="danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                <?php if (!$products): ?>
-                    <tr><td colspan="3">No products yet.</td></tr>
-                <?php endif; ?>
-                </tbody>
-            </table>
+            <h2>Inventory</h2>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($products as $product): ?>
+                        <tr>
+                            <td>
+                                <strong><?= e($product['name']) ?></strong><br>
+                                <small><?= e($product['description'] ?? '') ?></small>
+                            </td>
+                            <td><?= e($product['category_name'] ?? 'Uncategorized') ?></td>
+                            <td>$<?= e(number_format((float) $product['price'], 2)) ?></td>
+                            <td>
+                                <form method="post" class="row-actions">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="action" value="update">
+                                    <input type="hidden" name="id" value="<?= e((string) $product['id']) ?>">
+                                    <input type="text" name="name" value="<?= e($product['name']) ?>" required>
+                                    <input type="number" name="price" step="0.01" min="0.01" value="<?= e((string) $product['price']) ?>" required>
+                                    <select name="category_id">
+                                        <option value="">Uncategorized</option>
+                                        <?php foreach ($categories as $category): ?>
+                                            <option value="<?= e((string) $category['id']) ?>" <?= (int) ($product['category_id'] ?? 0) === (int) $category['id'] ? 'selected' : '' ?>><?= e($category['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <textarea name="description" placeholder="description"><?= e($product['description'] ?? '') ?></textarea>
+                                    <button type="submit">Update</button>
+                                </form>
+                                <form method="post" onsubmit="return confirm('Delete this product?');">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="<?= e((string) $product['id']) ?>">
+                                    <button type="submit" class="danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (!$products): ?>
+                        <tr><td colspan="4">No products yet.</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </section>
     </div>
 </div>

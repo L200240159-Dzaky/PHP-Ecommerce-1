@@ -14,10 +14,18 @@ $user = user();
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - <?= e(APP_NAME) ?></title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f7f7fb; color: #111827; }
-        .box { max-width: 760px; margin: 48px auto; background: #fff; padding: 28px; border-radius: 18px; box-shadow: 0 20px 48px rgba(15, 23, 42, .08); }
-        .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-weight: 700; }
-        a { color: #7c3aed; }
+        body {
+            margin: 0; font-family: "Trebuchet MS", "Segoe UI", sans-serif; color: #1f1308;
+            background:
+                radial-gradient(circle at top left, rgba(249, 115, 22, 0.12), transparent 28%),
+                linear-gradient(180deg, #fffaf5 0%, #fff4e9 100%);
+        }
+        .box {
+            max-width: 760px; margin: 56px auto; background: rgba(255,255,255,.9); padding: 28px;
+            border-radius: 24px; box-shadow: 0 24px 70px rgba(249, 115, 22, 0.12); border: 1px solid #f3dcc7;
+        }
+        .pill { display: inline-block; padding: 7px 10px; border-radius: 999px; background: #fff1e7; color: #ea580c; font-weight: 800; }
+        a { color: #ea580c; }
     </style>
 </head>
 <body>
@@ -25,7 +33,6 @@ $user = user();
     <h1>Member dashboard</h1>
     <p>Welcome, <?= e($user['name']) ?>.</p>
     <p class="pill">Role: <?= e($user['role']) ?></p>
-    <p>This is the protected member area. Guests should not see this page.</p>
     <p><a href="<?= e(url('index.php')) ?>">Back to home</a></p>
 </div>
 </body>
