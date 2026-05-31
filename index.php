@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/init.php';
 
-$statement = db()->query('SELECT p.id, p.name, p.description, p.price, p.image_path, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id ORDER BY p.id DESC');
+$statement = db()->query('SELECT p.id, p.name, p.description, p.price, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id ORDER BY p.id DESC');
 $products = $statement->fetchAll();
 
 $success = flash('success');

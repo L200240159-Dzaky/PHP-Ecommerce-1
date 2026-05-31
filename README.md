@@ -21,6 +21,10 @@ Vanilla PHP ecommerce starter for XAMPP.
 - Email: `admin@example.com`
 - Password: `Admin123!`
 
+## Added member
+Email: `endmind@admin.com`
+Password: `12345678`
+
 ## Notes
 - Guest users can browse the storefront.
 - Members can log in and access the dashboard.

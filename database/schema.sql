@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS products (
     name VARCHAR(180) NOT NULL,
     description TEXT NULL,
     price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    image_path VARCHAR(255) NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NULL DEFAULT NULL,
     CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -53,7 +52,6 @@ INSERT INTO products (
     name,
     description,
     price,
-    image_path,
     created_at,
     updated_at
 )
@@ -63,7 +61,6 @@ VALUES
     'Wireless Mouse',
     'Ergonomic wireless mouse with USB receiver.',
     199000.00,
-    'uploads/mouse.jpg',
     NOW(),
     NOW()
 ),
@@ -72,7 +69,6 @@ VALUES
     'Mechanical Keyboard',
     'RGB mechanical keyboard with blue switches.',
     799000.00,
-    'uploads/keyboard.jpg',
     NOW(),
     NOW()
 ),
@@ -81,7 +77,6 @@ VALUES
     'Clean Code',
     'A Handbook of Agile Software Craftsmanship.',
     350000.00,
-    'uploads/clean-code.jpg',
     NOW(),
     NOW()
 ),
@@ -89,8 +84,7 @@ VALUES
     3,
     'Cotton T-Shirt',
     'Comfortable 100% cotton t-shirt.',
-    129000.00,
-    'uploads/tshirt.jpg',
+    129000,
     NOW(),
     NOW()
 ),
@@ -99,7 +93,6 @@ VALUES
     'Garden Hose',
     'Durable garden hose with adjustable nozzle.',
     299000.00,
-    'uploads/garden-hose.jpg',
     NOW(),
     NOW()
 ),
@@ -107,8 +100,7 @@ VALUES
     5,
     'Yoga Mat',
     'Non-slip yoga mat with carrying strap.',
-    199000.00,
-    'uploads/yoga-mat.jpg',
+    199000.0,
     NOW(),
     NOW()
 ),
@@ -117,7 +109,6 @@ VALUES
     'Building Blocks Set',
     'Creative building blocks for kids.',
     499000.00,
-    'uploads/building-blocks.jpg',
     NOW(),
     NOW()
 ),
@@ -126,7 +117,7 @@ VALUES
     'Skincare Set',
     'Complete skincare set for all skin types.',
     899000.00,
-    'uploads/skincare-set.jpg',
+    
     NOW(),
     NOW()
 ),
@@ -135,7 +126,6 @@ VALUES
     'Car Vacuum Cleaner',
     'Portable car vacuum cleaner with strong suction.',
     299000.00,
-    'uploads/car-vacuum.jpg',
     NOW(),
     NOW()
 ),
@@ -144,7 +134,6 @@ VALUES
     'Acoustic Guitar',
     'Full-size acoustic guitar with case.',
     1499000.00,
-    'uploads/acoustic-guitar.jpg',
     NOW(),
     NOW()
 ),
@@ -153,7 +142,6 @@ VALUES
     'Office Chair',
     'Ergonomic office chair with adjustable height.',
     599000.00,
-    'uploads/office-chair.jpg',
     NOW(),
     NOW()
 )

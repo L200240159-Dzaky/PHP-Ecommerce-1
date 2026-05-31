@@ -18,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim((string) ($_POST['name'] ?? ''));
         $description = trim((string) ($_POST['description'] ?? ''));
         $price = (float) ($_POST['price'] ?? 0);
-        $imagePath = trim((string) ($_POST['image_path'] ?? ''));
         $categoryId = (int) ($_POST['category_id'] ?? 0);
 
         if ($name === '' || $price <= 0) {
@@ -26,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('admin/products.php');
         }
 
-        $statement = db()->prepare('INSERT INTO products (category_id, name, description, price, image_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())');
-        $statement->execute([$categoryId > 0 ? $categoryId : null, $name, $description, $price, $imagePath]);
+        $statement = db()->prepare('INSERT INTO products (category_id, name, description, price, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())');
+        $statement->execute([$categoryId > 0 ? $categoryId : null, $name, $description, $price]);
 
         flash('success', 'Product created.');
         redirect('admin/products.php');
@@ -38,7 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim((string) ($_POST['name'] ?? ''));
         $description = trim((string) ($_POST['description'] ?? ''));
         $price = (float) ($_POST['price'] ?? 0);
-        $imagePath = trim((string) ($_POST['image_path'] ?? ''));
         $categoryId = (int) ($_POST['category_id'] ?? 0);
 
         if ($id <= 0 || $name === '' || $price <= 0) {
@@ -46,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('admin/products.php');
         }
 
-        $statement = db()->prepare('UPDATE products SET category_id = ?, name = ?, description = ?, price = ?, image_path = ?, updated_at = NOW() WHERE id = ?');
-        $statement->execute([$categoryId > 0 ? $categoryId : null, $name, $description, $price, $imagePath, $id]);
+        $statement = db()->prepare('UPDATE products SET category_id = ?, name = ?, description = ?, price = ?, updated_at = NOW() WHERE id = ?');
+        $statement->execute([$categoryId > 0 ? $categoryId : null, $name, $description, $price, $id]);
 
         flash('success', 'Product updated.');
         redirect('admin/products.php');
@@ -67,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $categories = db()->query('SELECT id, name FROM categories ORDER BY name ASC')->fetchAll();
-$products = db()->query('SELECT p.id, p.name, p.description, p.price, p.image_path, p.category_id, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id ORDER BY p.id DESC')->fetchAll();
+$products = db()->query('SELECT p.id, p.name, p.description, p.price, p.category_id, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id ORDER BY p.id DESC')->fetchAll();
 $success = flash('success');
 $error = flash('error');
 ?>
@@ -122,8 +120,6 @@ $error = flash('error');
                         <option value="<?= e((string) $category['id']) ?>"><?= e($category['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <label for="create_image">Image path</label>
-                <input id="create_image" name="image_path" type="text" placeholder="images/product.jpg">
                 <button type="submit">Save product</button>
             </form>
         </section>
@@ -161,7 +157,6 @@ $error = flash('error');
                                         <option value="<?= e((string) $category['id']) ?>" <?= (int) ($product['category_id'] ?? 0) === (int) $category['id'] ? 'selected' : '' ?>><?= e($category['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <input type="text" name="image_path" value="<?= e($product['image_path'] ?? '') ?>" placeholder="image path">
                                 <textarea name="description" placeholder="description"><?= e($product['description'] ?? '') ?></textarea>
                                 <button type="submit">Update</button>
                             </form>
