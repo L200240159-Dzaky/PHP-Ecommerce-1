@@ -10,4 +10,5 @@ require_role('admin');
 <ul>
     <li><a href="<?= e(url('admin/products.php')) ?>">Products</a></li>
     <li><a href="<?= e(url('admin/categories.php')) ?>">Categories</a></li>
+    <li><a href="<?= e(url('admin/transactions.php')) ?>">Transactions</a></li>
 </ul>

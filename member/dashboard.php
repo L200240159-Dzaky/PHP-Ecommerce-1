@@ -33,7 +33,10 @@ $user = user();
     <h1>Member dashboard</h1>
     <p>Welcome, <?= e($user['name']) ?>.</p>
     <p class="pill">Role: <?= e($user['role']) ?></p>
-    <p><a href="<?= e(url('index.php')) ?>">Back to home</a></p>
+    <div style="margin-top: 20px;">
+        <p><a href="<?= e(url('member/orders.php')) ?>" style="font-weight: bold; font-size: 1.1rem;">My Orders</a></p>
+        <p><a href="<?= e(url('index.php')) ?>">Back to home</a></p>
+    </div>
 </div>
 </body>
 </html>

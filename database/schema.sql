@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS products (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO users (name, email, password, role, created_at) VALUES
-('Admin', 'admin@example.com', '$2y$10$oWrYk9CJZwkbhI2mNg0bbedSYM/jQ5KqnBRnQyBKtT0gFDYNmpws6', 'admin', NOW())
+('Admin', 'admin@example.com', '$2y$10$oWrYk9CJZwkbhI2mNg0bbedSYM/jQ5KqnBRnQyBKtT0gFDYNmpws6', 'admin', NOW()),
+('Endmind', 'endmind@example.com', 'endmind123', 'member', NOW())
 ON DUPLICATE KEY UPDATE email = email;
 
 INSERT INTO categories (name, slug, created_at, updated_at)
@@ -137,12 +138,47 @@ VALUES
     NOW(),
     NOW()
 ),
-(
-    10,
-    'Office Chair',
-    'Ergonomic office chair with adjustable height.',
-    599000.00,
-    NOW(),
-    NOW()
-)
-;
+    (
+        10,
+        'Office Chair',
+        'Ergonomic office chair with adjustable height.',
+        599000.00,
+        NOW(),
+        NOW()
+    )
+    ;
+
+INSERT INTO users (id, name, email, password, role, created_at) VALUES
+(2, 'Member User', 'member@example.com', '$2y$10$oWrYk9CJZwkbhI2mNg0bbedSYM/jQ5KqnBRnQyBKtT0gFDYNmpws6', 'member', NOW())
+ON DUPLICATE KEY UPDATE email = email;
+
+CREATE TABLE IF NOT EXISTS orders (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NULL DEFAULT NULL,
+    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NULL,
+    quantity INT UNSIGNED NOT NULL DEFAULT 1,
+    price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL,
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO orders (id, user_id, total_price, created_at, updated_at) VALUES
+(1, 2, 998000.00, NOW(), NOW()),
+(2, 2, 350000.00, NOW(), NOW())
+ON DUPLICATE KEY UPDATE id = id;
+
+INSERT INTO order_items (id, order_id, product_id, quantity, price, created_at) VALUES
+(1, 1, 1, 1, 199000.00, NOW()),
+(2, 1, 2, 1, 799000.00, NOW()),
+(3, 2, 3, 1, 350000.00, NOW())
+ON DUPLICATE KEY UPDATE id = id;

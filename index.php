@@ -87,6 +87,22 @@ $user = user();
         .empty {
             padding: 20px; border-radius: 18px; border: 1px dashed #f1c9a8; background: rgba(255,255,255,.7);
         }
+        .buy-btn {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff !important;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: background 0.2s, transform 0.1s;
+            text-align: center;
+        }
+        .buy-btn:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -129,6 +145,9 @@ $user = user();
                 <?php if (!empty($product['description'])): ?>
                     <p class="meta"><?= e($product['description']) ?></p>
                 <?php endif; ?>
+                <div style="margin-top: 14px;">
+                    <a href="<?= e(url('member/buy.php?id=' . $product['id'])) ?>" class="buy-btn">Buy Now</a>
+                </div>
             </article>
         <?php endforeach; ?>
         <?php if (!$products): ?>
