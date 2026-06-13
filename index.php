@@ -110,7 +110,7 @@ $user = user();
 
     <section class="hero">
         <span class="kicker">Catalog</span>
-        <h1>Minimal storefront.</h1>
+        <h1>Tampilan Depan</h1>
     </section>
 
     <div class="alerts">

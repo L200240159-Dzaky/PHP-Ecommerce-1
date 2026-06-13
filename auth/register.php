@@ -83,11 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <div class="box">
-    <h1>Register</h1>
+    <h1>Registrasi</h1>
     <?php if ($error !== null): ?><div class="error"><?= e($error) ?></div><?php endif; ?>
     <form method="post">
         <?= csrf_field() ?>
-        <label for="name">Name</label>
+        <label for="name">Nama</label>
         <input id="name" name="name" type="text" value="<?= e(old('name')) ?>" required>
         <label for="email">Email</label>
         <input id="email" name="email" type="email" value="<?= e(old('email')) ?>" required>

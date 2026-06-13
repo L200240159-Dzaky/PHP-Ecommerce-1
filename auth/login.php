@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <div class="box">
-    <h1>Login</h1>
+    <h1>Masuk</h1>
     <?php if ($error !== null): ?><div class="error"><?= e($error) ?></div><?php endif; ?>
     <form method="post">
         <?= csrf_field() ?>
