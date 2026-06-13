@@ -115,10 +115,14 @@ $user = user();
                 <a href="<?= e(url('auth/login.php')) ?>">Login</a>
                 <a href="<?= e(url('auth/register.php')) ?>">Register</a>
             <?php else: ?>
-                <a href="<?= e(url('member/dashboard.php')) ?>">Dashboard</a>
+                <!-- Dynamically determine dashboard link based on role -->
                 <?php if (has_role('admin')): ?>
+                    <a href="<?= e(url('admin/dashboard.php')) ?>">Dashboard</a>
                     <a href="<?= e(url('admin/products.php')) ?>">Admin Products</a>
+                <?php else: ?>
+                    <a href="<?= e(url('member/dashboard.php')) ?>">Dashboard</a>
                 <?php endif; ?>
+                
                 <a href="<?= e(url('auth/logout.php')) ?>">Logout</a>
             <?php endif; ?>
         </div>
@@ -146,7 +150,11 @@ $user = user();
                     <p class="meta"><?= e($product['description']) ?></p>
                 <?php endif; ?>
                 <div style="margin-top: 14px;">
-                    <a href="<?= e(url('member/buy.php?id=' . $product['id'])) ?>" class="buy-btn">Buy Now</a>
+                    <?php if (has_role('member')): ?>
+                        <a href="<?= e(url('member/buy.php?id=' . $product['id'])) ?>" class="buy-btn">Buy Now</a>
+                    <?php elseif ($user === null): ?>
+                        <a href="<?= e(url('auth/login.php')) ?>" class="buy-btn" style="background:var(--muted);">Login to Buy</a>
+                    <?php endif; ?>
                 </div>
             </article>
         <?php endforeach; ?>

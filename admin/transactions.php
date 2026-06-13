@@ -114,7 +114,8 @@ foreach ($results as $row) {
 <div class="wrap">
     <div class="topbar">
         <div>
-            <a href="<?= e(url('index.php')) ?>">Back to home</a>
+            <a href="<?= e(url('admin/dashboard.php')) ?>">Dashboard</a>
+            <a href="<?= e(url('index.php')) ?>">Home</a>
             <a href="<?= e(url('admin/products.php')) ?>">Products</a>
             <a href="<?= e(url('admin/categories.php')) ?>">Categories</a>
         </div>

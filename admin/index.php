@@ -6,4 +6,4 @@ require_once __DIR__ . '/../includes/init.php';
 
 require_role('admin');
 
-redirect('admin/products.php');
+redirect('admin/dashboard.php');

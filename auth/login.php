@@ -5,7 +5,10 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/init.php';
 
 if (is_logged_in()) {
-    redirect('index.php');
+    if (has_role('admin')) {
+        redirect('admin/dashboard.php');
+    }
+    redirect('member/dashboard.php');
 }
 
 $error = flash('error');
@@ -36,7 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     authenticate_user($foundUser);
     clear_old_input();
     flash('success', 'Welcome back, ' . $foundUser['name'] . '.');
-    redirect('index.php');
+    if ($foundUser['role'] === 'admin') {
+        redirect('admin/dashboard.php');
+    }
+    redirect('member/dashboard.php');
 }
 ?>
 <!doctype html>

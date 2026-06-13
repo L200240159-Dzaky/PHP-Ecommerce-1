@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/init.php';
 
-require_login();
+require_role('member');
 $user = user();
 ?>
 <!doctype html>
