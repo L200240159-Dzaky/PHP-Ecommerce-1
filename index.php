@@ -1,169 +1,189 @@
 <?php
+require_once 'db.php';
 
-declare(strict_types=1);
+// Handle add to cart
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    if (!isLoggedIn()) {
+        setFlash('Please login to add items to cart', 'warning');
+        header('Location: login.php');
+        exit;
+    }
 
-require_once __DIR__ . '/includes/init.php';
+    $product_id = intval($_POST['product_id']);
+    $quantity = intval($_POST['quantity']) ?? 1;
 
-$statement = db()->query('SELECT p.id, p.name, p.description, p.price, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id ORDER BY p.id DESC');
-$products = $statement->fetchAll();
+    // Validate product exists
+    $stmt = $pdo->prepare('SELECT id, stock FROM products WHERE id = ?');
+    $stmt->execute([$product_id]);
+    $product = $stmt->fetch();
 
-$success = flash('success');
-$error = flash('error');
-$user = user();
+    if (!$product) {
+        setFlash('Product not found', 'danger');
+    } elseif ($quantity > $product['stock']) {
+        setFlash('Insufficient stock available', 'danger');
+    } elseif ($quantity < 1) {
+        setFlash('Invalid quantity', 'danger');
+    } else {
+        // Check if item already in cart
+        $stmt = $pdo->prepare('SELECT id, quantity FROM carts WHERE user_id = ? AND product_id = ?');
+        $stmt->execute([$_SESSION['user_id'], $product_id]);
+        $cartItem = $stmt->fetch();
+
+        if ($cartItem) {
+            // Update quantity
+            $newQuantity = $cartItem['quantity'] + $quantity;
+            if ($newQuantity > $product['stock']) {
+                setFlash('Cannot exceed available stock', 'danger');
+            } else {
+                $stmt = $pdo->prepare('UPDATE carts SET quantity = ? WHERE id = ?');
+                $stmt->execute([$newQuantity, $cartItem['id']]);
+                setFlash('Product quantity updated in cart', 'success');
+            }
+        } else {
+            // Insert new cart item
+            $stmt = $pdo->prepare('INSERT INTO carts (user_id, product_id, quantity) VALUES (?, ?, ?)');
+            if ($stmt->execute([$_SESSION['user_id'], $product_id, $quantity])) {
+                setFlash('Product added to cart', 'success');
+            }
+        }
+    }
+
+    header('Location: index.php');
+    exit;
+}
+
+// Fetch all products
+$stmt = $pdo->query('SELECT id, name, description, price, stock, image FROM products ORDER BY name ASC');
+$products = $stmt->fetchAll();
+
+// Fetch cart count if logged in
+$cartCount = 0;
+if (isLoggedIn()) {
+    $stmt = $pdo->prepare('SELECT SUM(quantity) as total FROM carts WHERE user_id = ?');
+    $stmt->execute([$_SESSION['user_id']]);
+    $result = $stmt->fetch();
+    $cartCount = $result['total'] ?? 0;
+}
+
+$flash = getFlash();
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e(APP_NAME) ?></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - <?php echo SITE_NAME; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root {
-            color-scheme: light;
-            --bg: #fff7ef;
-            --panel: rgba(255, 255, 255, 0.9);
-            --panel-strong: #ffffff;
-            --text: #1f1308;
-            --muted: #7a5d45;
-            --accent: #f97316;
-            --accent-dark: #ea580c;
-            --accent-soft: #fff1e7;
-            --border: #f3dcc7;
-            --shadow: 0 24px 70px rgba(249, 115, 22, 0.14);
+        .navbar-custom {
+            background-color: #2c3e50;
         }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(249, 115, 22, 0.14), transparent 28%),
-                radial-gradient(circle at 85% 10%, rgba(251, 146, 60, 0.14), transparent 24%),
-                linear-gradient(180deg, #fffaf5 0%, #fff4e9 100%);
-            color: var(--text);
+        .product-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
         }
-        .wrap { max-width: 1120px; margin: 0 auto; padding: 20px; }
-        .nav {
-            display: flex; justify-content: space-between; align-items: center; gap: 16px;
-            margin-bottom: 18px; padding: 14px 16px; border: 1px solid rgba(243, 220, 199, 0.9);
-            border-radius: 18px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
-        .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 0.02em; }
-        .brand-mark {
-            width: 12px; height: 12px; border-radius: 999px; background: var(--accent);
-            box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.14);
-        }
-        .nav-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .nav a {
-            color: var(--text); text-decoration: none; font-weight: 700; padding: 9px 12px;
-            border-radius: 999px; border: 1px solid transparent;
-        }
-        .nav a:hover { background: var(--accent-soft); border-color: #ffd7b8; color: var(--accent-dark); }
-        .hero {
-            display: grid; gap: 10px; padding: 18px 0 10px; margin-bottom: 14px;
-        }
-        .kicker {
-            display: inline-flex; align-self: start; padding: 7px 11px; border-radius: 999px;
-            background: var(--accent-soft); color: var(--accent-dark); font-size: 0.84rem; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.08em;
-        }
-        .hero h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1; letter-spacing: -0.05em; }
-        .alerts { margin-bottom: 16px; }
-        .alert {
-            padding: 12px 14px; border-radius: 14px; margin-bottom: 10px; border: 1px solid transparent;
-        }
-        .alert.success { background: #fff5eb; color: #9a3412; border-color: #fed7aa; }
-        .alert.error { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 8px; }
-        .card {
-            background: var(--panel-strong); border: 1px solid var(--border); border-radius: 22px;
-            padding: 18px; box-shadow: var(--shadow); min-height: 180px;
-        }
-        .card h3 { margin: 0 0 8px; font-size: 1.05rem; }
-        .price {
-            display: inline-flex; align-items: center; margin: 10px 0 14px; padding: 7px 10px;
-            border-radius: 999px; background: var(--accent-soft); color: var(--accent-dark); font-weight: 800;
-        }
-        .meta { color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
-        .empty {
-            padding: 20px; border-radius: 18px; border: 1px dashed #f1c9a8; background: rgba(255,255,255,.7);
-        }
-        .buy-btn {
-            display: inline-block;
-            background: var(--accent);
-            color: #fff !important;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            transition: background 0.2s, transform 0.1s;
-            text-align: center;
-        }
-        .buy-btn:hover {
-            background: var(--accent-dark);
-            transform: translateY(-1px);
+        .product-image {
+            height: 250px;
+            object-fit: cover;
+            background-color: #f8f9fa;
         }
     </style>
 </head>
-<body>
-<div class="wrap">
-    <div class="nav">
-        <div class="brand"><span class="brand-mark"></span><span><?= e(APP_NAME) ?></span></div>
-        <div class="nav-links">
-            <a href="<?= e(url('index.php')) ?>">Home</a>
-            <?php if ($user === null): ?>
-                <a href="<?= e(url('auth/login.php')) ?>">Login</a>
-                <a href="<?= e(url('auth/register.php')) ?>">Register</a>
-            <?php else: ?>
-                <!-- Dynamically determine dashboard link based on role -->
-                <?php if (has_role('admin')): ?>
-                    <a href="<?= e(url('admin/dashboard.php')) ?>">Dashboard</a>
-                    <a href="<?= e(url('admin/products.php')) ?>">Admin Products</a>
-                <?php else: ?>
-                    <a href="<?= e(url('member/dashboard.php')) ?>">Dashboard</a>
-                <?php endif; ?>
-                
-                <a href="<?= e(url('auth/logout.php')) ?>">Logout</a>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <section class="hero">
-        <span class="kicker">Catalog</span>
-        <h1>Tampilan Depan</h1>
-    </section>
-
-    <div class="alerts">
-        <?php if ($success !== null): ?><div class="alert success"><?= e($success) ?></div><?php endif; ?>
-        <?php if ($error !== null): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
-    </div>
-
-    <div class="grid">
-        <?php foreach ($products as $product): ?>
-            <article class="card">
-                <h3><?= e($product['name']) ?></h3>
-                <?php if (!empty($product['category_name'])): ?>
-                    <div class="meta"><?= e($product['category_name']) ?></div>
-                <?php endif; ?>
-                <div class="price">$<?= e(number_format((float) $product['price'], 2)) ?></div>
-                <?php if (!empty($product['description'])): ?>
-                    <p class="meta"><?= e($product['description']) ?></p>
-                <?php endif; ?>
-                <div style="margin-top: 14px;">
-                    <?php if (has_role('member')): ?>
-                        <a href="<?= e(url('member/buy.php?id=' . $product['id'])) ?>" class="buy-btn">Buy Now</a>
-                    <?php elseif ($user === null): ?>
-                        <a href="<?= e(url('auth/login.php')) ?>" class="buy-btn" style="background:var(--muted);">Login to Buy</a>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.php"><?php echo SITE_NAME; ?></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <?php if (isLoggedIn()): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="cart.php">
+                                🛒 Cart <span class="badge bg-danger"><?php echo $cartCount; ?></span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="history.php">📋 Order History</a>
+                        </li>
+                        <?php if (isAdmin()): ?>
+                            <li class="nav-item">
+                                <a class="nav-link" href="admin.php">⚙️ Admin Panel</a>
+                            </li>
+                        <?php endif; ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="logout.php">👋 Logout (<?php echo $_SESSION['user_name']; ?>)</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="login.php">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="register.php">Register</a>
+                        </li>
                     <?php endif; ?>
-                </div>
-            </article>
-        <?php endforeach; ?>
-        <?php if (!$products): ?>
-            <article class="empty">
-                <strong>No products yet.</strong>
-            </article>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <?php if ($flash): ?>
+            <div class="alert alert-<?php echo htmlspecialchars($flash['type']); ?> alert-dismissible fade show" role="alert">
+                <?php echo htmlspecialchars($flash['message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <h1 class="mb-4">Our Products</h1>
+
+        <?php if (empty($products)): ?>
+            <div class="alert alert-info">No products available at the moment.</div>
+        <?php else: ?>
+            <div class="row g-4">
+                <?php foreach ($products as $product): ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card product-card shadow-sm">
+                            <?php 
+                            $imageSrc = 'uploads/' . (empty($product['image']) || !file_exists('uploads/' . $product['image']) ? 'default.png' : $product['image']);
+                            ?>
+                            <img src="<?php echo htmlspecialchars($imageSrc); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="card-img-top product-image">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                <p class="card-text text-muted flex-grow-1"><?php echo htmlspecialchars(substr($product['description'], 0, 100)) . '...'; ?></p>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="h5 mb-0 text-primary">$<?php echo number_format($product['price'], 2); ?></span>
+                                    <span class="badge bg-<?php echo $product['stock'] > 0 ? 'success' : 'danger'; ?>">
+                                        <?php echo $product['stock'] > 0 ? $product['stock'] . ' in stock' : 'Out of stock'; ?>
+                                    </span>
+                                </div>
+
+                                <?php if (isLoggedIn() && $product['stock'] > 0): ?>
+                                    <form method="POST" action="" class="mt-auto">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <div class="input-group mb-2">
+                                            <input type="number" class="form-control" name="quantity" value="1" min="1" max="<?php echo $product['stock']; ?>">
+                                            <button type="submit" name="add_to_cart" class="btn btn-primary">Add to Cart</button>
+                                        </div>
+                                    </form>
+                                <?php elseif (!isLoggedIn()): ?>
+                                    <a href="login.php" class="btn btn-outline-primary w-100">Login to Buy</a>
+                                <?php else: ?>
+                                    <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
     </div>
-</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
