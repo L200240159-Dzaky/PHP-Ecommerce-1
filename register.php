@@ -1,23 +1,22 @@
 <?php
 require_once 'db.php';
 
-// If already logged in, redirect to index
+// jika pengguna sudah login, maka langsung arahkan ke halaman utama
 if (isLoggedIn()) {
     header('Location: index.php');
     exit;
 }
-
 $error = '';
 $success = '';
 
-// Handle form submission
+// buat menangani proses registrasi ketika form registrasi disubmit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
 
-    // Validation
+    // memvalidasi input dari form registrasi dan memastikan semua field diisi
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = 'All fields are required.';
     } elseif (strlen($password) < 6) {
@@ -27,13 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Invalid email format.';
     } else {
-        // Check if email already exists
+        // cek apakah email sudah terdaftar di database
         $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
             $error = 'Email already registered.';
         } else {
-            // Hash password and insert user
+            // jka validasi berhasil maka buat hash dari password yang dimasukkan dan simpan data pengguna baru ke database dengan peran default 'member'
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
             $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)');
             if ($stmt->execute([$name, $email, $hashed_password, 'member'])) {

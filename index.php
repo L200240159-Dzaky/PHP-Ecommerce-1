@@ -1,7 +1,7 @@
 <?php
 require_once 'db.php';
 
-// Handle add to cart
+// untuk menambah produk belanja ke keranjang
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
     if (!isLoggedIn()) {
         setFlash('Please login to add items to cart', 'warning');
@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
     $product_id = intval($_POST['product_id']);
     $quantity = intval($_POST['quantity']) ?? 1;
 
-    // Validate product exists
+    // untuk validasi apakah produk masih tersedia dan jumlah yang diminta tidak melebihi stok yang ada
     $stmt = $pdo->prepare('SELECT id, stock FROM products WHERE id = ?');
     $stmt->execute([$product_id]);
     $product = $stmt->fetch();
@@ -24,13 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
     } elseif ($quantity < 1) {
         setFlash('Invalid quantity', 'danger');
     } else {
-        // Check if item already in cart
+        // mengecek apakah produk sudah ada di keranjang pengguna, jika sudah maka update jumlahnya, jika belum maka tambahkan sebagai item baru di keranjang
         $stmt = $pdo->prepare('SELECT id, quantity FROM carts WHERE user_id = ? AND product_id = ?');
         $stmt->execute([$_SESSION['user_id'], $product_id]);
         $cartItem = $stmt->fetch();
 
         if ($cartItem) {
-            // Update quantity
+            // mengupdate jumlah produk
             $newQuantity = $cartItem['quantity'] + $quantity;
             if ($newQuantity > $product['stock']) {
                 setFlash('Cannot exceed available stock', 'danger');
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
                 setFlash('Product quantity updated in cart', 'success');
             }
         } else {
-            // Insert new cart item
+            // menambah item baru ke keranjang
             $stmt = $pdo->prepare('INSERT INTO carts (user_id, product_id, quantity) VALUES (?, ?, ?)');
             if ($stmt->execute([$_SESSION['user_id'], $product_id, $quantity])) {
                 setFlash('Product added to cart', 'success');
@@ -52,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
     exit;
 }
 
-// Fetch all products
+// buat mengambil semua produk dari database untuk ditampilkan di halaman utama
 $stmt = $pdo->query('SELECT id, name, description, price, stock, image FROM products ORDER BY name ASC');
 $products = $stmt->fetchAll();
 
-// Fetch cart count if logged in
+// buatmenghitung jumlah item di keranjang untuk ditampilkan di navbar jika pengguna sudah login
 $cartCount = 0;
 if (isLoggedIn()) {
     $stmt = $pdo->prepare('SELECT SUM(quantity) as total FROM carts WHERE user_id = ?');

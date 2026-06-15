@@ -1,9 +1,6 @@
 <?php
 require_once 'db.php';
-
-// Destroy session
 session_destroy();
-
-// Redirect to login
+// untuk mengarahkan pengguna kembali ke halaman login setelah logout
 header('Location: login.php');
 exit;

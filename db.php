@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Create PDO connection
+// buat koneksi ke database menggunakan PDO dengan konfigurasi yang sudah didefinisikan di config.php
 try {
     $pdo = new PDO(
         'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME,
@@ -21,17 +21,17 @@ try {
     die('Database connection failed: ' . $e->getMessage());
 }
 
-// Helper function to check if user is logged in
+// mengecek apakah pengguna sudah login atau belum.
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-// Helper function to check if user is admin
+// mengecek apakah pengguna memiliki peran admin atau tidak.
 function isAdmin() {
     return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
 
-// Helper function to require login
+// melindungi halaman agar hanya bisa diakses oleh pengguna yang sudah login.
 function requireLogin() {
     if (!isLoggedIn()) {
         header('Location: login.php');
@@ -39,20 +39,20 @@ function requireLogin() {
     }
 }
 
-// Helper function to require admin role
+// melindungi halaman agar hanya bisa diakses oleh pengguna dengan peran admin.
 function requireAdmin() {
     if (!isAdmin()) {
         die('Access Denied: Admin privileges required.');
     }
 }
 
-// Helper function to set flash message
+// menyimpan pesan notifikasi (flash message) ke dalam session
 function setFlash($message, $type = 'info') {
     $_SESSION['flash_message'] = $message;
     $_SESSION['flash_type'] = $type;
 }
 
-// Helper function to get and clear flash message
+// mengambil pesan notifikasi (flash message) dari session dan menghapusnya setelah ditampilkan
 function getFlash() {
     if (isset($_SESSION['flash_message'])) {
         $message = $_SESSION['flash_message'];

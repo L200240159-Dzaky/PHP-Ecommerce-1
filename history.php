@@ -95,7 +95,7 @@ $flash = getFlash();
                         <tbody>
                             <?php foreach ($transactions as $transaction): ?>
                                 <?php
-                                // Fetch items for this transaction
+                                // untuk setiap transaksi, ambil item-item yang terkait dengan transaksi tersebut
                                 $itemStmt = $pdo->prepare('
                                     SELECT ti.id, ti.product_id, ti.quantity, ti.price, p.name
                                     FROM transaction_items ti

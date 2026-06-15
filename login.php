@@ -1,15 +1,13 @@
 <?php
 require_once 'db.php';
-
-// If already logged in, redirect to index
+// jika pengguna sudah login, maka langsung arahkan ke halaman utama
 if (isLoggedIn()) {
     header('Location: index.php');
     exit;
 }
-
 $error = '';
 
-// Handle form submission
+// menangani proses login ketika form login disubmit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
@@ -17,19 +15,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $error = 'Email and password are required.';
     } else {
-        // Fetch user from database
+        // mencari pengguna berdasarkan email yang dimasukkan di form login
         $stmt = $pdo->prepare('SELECT id, name, email, password, role FROM users WHERE email = ?');
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            // Login successful - set session variables
+            // login berhasil, simpan informasi pengguna ke dalam session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['role'] = $user['role'];
-
-            // Redirect based on role
+            // jika pengguna memiliki peran admin, arahkan ke halaman admin, jika tidak arahkan ke halaman utama
             if ($user['role'] === 'admin') {
                 header('Location: admin.php');
             } else {

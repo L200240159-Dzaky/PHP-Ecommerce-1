@@ -1,10 +1,10 @@
 <?php
 require_once 'db.php';
 
-// Require login
+// user sudah login
 requireLogin();
 
-// Handle remove from cart
+// untuk menghapus item dari cart
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_item'])) {
     $cart_id = intval($_POST['cart_id']);
     $stmt = $pdo->prepare('DELETE FROM carts WHERE id = ? AND user_id = ?');
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_item'])) {
     exit;
 }
 
-// Handle update quantity
+// untuk memperbarui jumlah item
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_quantity'])) {
     $cart_id = intval($_POST['cart_id']);
     $quantity = intval($_POST['quantity']);
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_quantity'])) {
     if ($quantity < 1) {
         setFlash('Invalid quantity', 'danger');
     } else {
-        // Check product stock
+        // mengecek stok produk sebelum memperbarui jumlah item di cart
         $stmt = $pdo->prepare('SELECT p.stock FROM carts c JOIN products p ON c.product_id = p.id WHERE c.id = ?');
         $stmt->execute([$cart_id]);
         $result = $stmt->fetch();
@@ -39,12 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_quantity'])) {
     exit;
 }
 
-// Handle checkout
+// buat transaksi baru saat checkout 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
     try {
         $pdo->beginTransaction();
 
-        // Fetch all cart items with product details
+        // mengambil semua barang yang ada di keranjang, lalu memastikan keranjang tidak kosong. 
         $stmt = $pdo->prepare('
             SELECT c.id, c.product_id, c.quantity, p.price, p.stock
             FROM carts c
@@ -58,25 +58,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
             throw new Exception('Cart is empty');
         }
 
-        // Validate stock for all items
+        // memvalidasi apakah jumlah barang yang dipesan melebihi stok yang tersedia
         foreach ($cartItems as $item) {
             if ($item['quantity'] > $item['stock']) {
                 throw new Exception("Insufficient stock for product ID {$item['product_id']}");
             }
         }
 
-        // Calculate total price
+        // menghitung jumlah total harga dari semua barang
         $totalPrice = 0;
         foreach ($cartItems as $item) {
             $totalPrice += $item['price'] * $item['quantity'];
         }
 
-        // Create transaction
+        // menyimpan transaksi ke database dengan status "completed"
         $stmt = $pdo->prepare('INSERT INTO transactions (user_id, total_price, status) VALUES (?, ?, ?)');
         $stmt->execute([$_SESSION['user_id'], $totalPrice, 'completed']);
         $transactionId = $pdo->lastInsertId();
 
-        // Add transaction items and update stock
+        // menyimpan detail transaksi ke database dan mengurangi stok produk sesuai dengan jumlah yang dipesan
         $stmt = $pdo->prepare('INSERT INTO transaction_items (transaction_id, product_id, quantity, price) VALUES (?, ?, ?, ?)');
         $updateStockStmt = $pdo->prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
 
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
             $updateStockStmt->execute([$item['quantity'], $item['product_id']]);
         }
 
-        // Clear cart
+        // menghapus semua barang dari keranjang setelah checkout berhasil
         $deleteStmt = $pdo->prepare('DELETE FROM carts WHERE user_id = ?');
         $deleteStmt->execute([$_SESSION['user_id']]);
 
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
     }
 }
 
-// Fetch cart items
+// mengambil semua barang yang ada di keranjang beserta informasi produk untuk ditampilkan di halaman cart
 $stmt = $pdo->prepare('
     SELECT c.id, c.product_id, c.quantity, p.name, p.price, p.stock, p.image
     FROM carts c
@@ -114,7 +114,7 @@ $stmt = $pdo->prepare('
 $stmt->execute([$_SESSION['user_id']]);
 $cartItems = $stmt->fetchAll();
 
-// Calculate totals
+// menghitung subtotal, pajak, dan total harga untuk ditampilkan di halaman cart
 $subtotal = 0;
 foreach ($cartItems as $item) {
     $subtotal += $item['price'] * $item['quantity'];

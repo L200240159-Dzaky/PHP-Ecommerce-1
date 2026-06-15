@@ -1,12 +1,12 @@
 <?php
 require_once 'db.php';
 
-// Require admin role
+// untuk memastikan hanya admin yang bisa akses halaman ini
 requireAdmin();
 
 $flash = getFlash();
 
-// Handle add/update product
+// menambahkan produk baru atau mengupdate produk yang sudah ada
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
     $product_id = !empty($_POST['product_id']) ? intval($_POST['product_id']) : null;
     $name = trim($_POST['name'] ?? '');
@@ -17,10 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
     if (empty($name) || $price <= 0 || $stock < 0) {
         setFlash('Please fill all required fields correctly', 'danger');
     } else {
-        // Determine the image to use
+        // untuk mengambil gambar yang sudah ada jika sedang mengedit produk, atau menggunakan default jika tidak ada
         $image = 'default.png';
         if ($product_id) {
-            // Get existing image
             $stmt = $pdo->prepare('SELECT image FROM products WHERE id = ?');
             $stmt->execute([$product_id]);
             $currentProduct = $stmt->fetch();
@@ -29,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
             }
         }
 
-        // Handle file upload
+        // untuk menangani upload gambar produk baru atau mengganti gambar produk yang sudah ada
         if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
             $fileTmpPath = $_FILES['product_image']['tmp_name'];
             $fileName = $_FILES['product_image']['name'];
@@ -38,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
 
             $allowedExtensions = ['png', 'jpg', 'jpeg'];
             if (in_array($fileExtension, $allowedExtensions)) {
-                // Sanitize and rename using timestamp prefix
+                // untuk memastikan nama file aman dan unik 
                 $cleanFileName = preg_replace("/[^a-zA-Z0-9_.-]/", "", $fileName);
                 $newFileName = time() . '_' . $cleanFileName;
                 $uploadFileDir = 'uploads/';
@@ -54,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
         }
 
         if ($product_id) {
-            // Update existing product
+            // untuk mengupdate produk yang sudah ada
             $stmt = $pdo->prepare('UPDATE products SET name = ?, description = ?, price = ?, stock = ?, image = ? WHERE id = ?');
             if ($stmt->execute([$name, $description, $price, $stock, $image, $product_id])) {
                 setFlash('Product updated successfully', 'success');
@@ -62,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
                 setFlash('Failed to update product', 'danger');
             }
         } else {
-            // Insert new product
+            // menambahkan produk baru ke database
             $stmt = $pdo->prepare('INSERT INTO products (name, description, price, stock, image) VALUES (?, ?, ?, ?, ?)');
             if ($stmt->execute([$name, $description, $price, $stock, $image])) {
                 setFlash('Product added successfully', 'success');
@@ -76,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_product'])) {
     exit;
 }
 
-// Handle delete product
+// buat menghapus produk dari database
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
     $product_id = intval($_POST['product_id']);
     $stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');
@@ -89,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
     exit;
 }
 
-// Fetch all transactions with user info
+// untuk mengambil transaksi terbaru beserta informasi pengguna dan ditampilkna di halaman adsmin
 $stmt = $pdo->query('
     SELECT t.id, t.user_id, t.total_price, t.status, t.created_at, u.name, u.email
     FROM transactions t
@@ -99,11 +98,11 @@ $stmt = $pdo->query('
 ');
 $transactions = $stmt->fetchAll();
 
-// Fetch all products
+// untuk mengambil semua produk dari database dan ditampilkan di halaman admin
 $stmt = $pdo->query('SELECT id, name, description, price, stock, image FROM products ORDER BY name ASC');
 $products = $stmt->fetchAll();
 
-// Get edit product if specified
+// untuk mengambil data produk yang akan diedit jika ada parameter
 $editProduct = null;
 if (isset($_GET['edit'])) {
     $editId = intval($_GET['edit']);
@@ -156,7 +155,7 @@ if (isset($_GET['edit'])) {
             </div>
         <?php endif; ?>
 
-        <!-- Transactions Section -->
+        <!-- transaksi -->
         <div class="admin-section">
             <div class="row mb-4">
                 <div class="col-12">
@@ -185,7 +184,7 @@ if (isset($_GET['edit'])) {
                             <tbody>
                                 <?php foreach ($transactions as $transaction): ?>
                                     <?php
-                                    // Count items in this transaction
+                                    // untuk menghitung jumlah item dalam setia transaksi dan ditampilkan di halaman admin
                                     $itemStmt = $pdo->prepare('SELECT COUNT(*) as count FROM transaction_items WHERE transaction_id = ?');
                                     $itemStmt->execute([$transaction['id']]);
                                     $itemCount = $itemStmt->fetch()['count'];
@@ -213,7 +212,7 @@ if (isset($_GET['edit'])) {
 
         <hr class="my-5">
 
-        <!-- Product Management Section -->
+        <!-- produk management -->
         <div class="admin-section">
             <div class="row mb-4">
                 <div class="col-12">
@@ -223,7 +222,7 @@ if (isset($_GET['edit'])) {
             </div>
 
             <div class="row">
-                <!-- Product Form -->
+                <!-- digunakan untuk menambahkan atau mengedit produk -->
                 <div class="col-lg-5 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body">
@@ -282,7 +281,7 @@ if (isset($_GET['edit'])) {
                     </div>
                 </div>
 
-                <!-- Product List -->
+                <!-- daftar produk  -->
                 <div class="col-lg-7">
                     <div class="card shadow-sm">
                         <div class="card-body">
